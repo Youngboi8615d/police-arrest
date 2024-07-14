@@ -1,0 +1,138 @@
+
+  ---RETRIVE ALL DATA
+SELECT * FROM Police_Arrests_20240702
+
+
+---FILTRING DATA
+SELECT DISTINCT Subject_s_race
+FROM Police_Arrests_20240702
+
+
+SELECT DISTINCT Assigned_Division
+FROM Police_Arrests_20240702
+
+
+SELECT DISTINCT Assigned_Bureau
+FROM Police_Arrests_20240702
+
+
+---GENERATING INSIGHT AND METRICS
+
+
+---TOTAL NUMBER OF SUBJECT ON GENDER
+SELECT Subject_s_gender,COUNT(Subject_s_gender) 'S_gender Count'
+FROM Police_Arrests_20240702
+GROUP BY Subject_s_gender
+
+
+---TOTAL NUMBER OF SUBJECT RACE BASED ON EACH GENDER
+SELECT Subject_s_race,Subject_s_gender,COUNT(Subject_s_race) 'S_race Gender Count'
+FROM Police_Arrests_20240702
+GROUP BY Subject_s_race,Subject_s_gender
+
+
+---GROUPING OF SUBJECT AGE
+SELECT Subject_s_age,
+	CASE
+		WHEN Subject_s_age BETWEEN 0 AND 18 THEN 'Teens'
+		WHEN Subject_s_age BETWEEN 19 AND 30 THEN 'Youth'
+		WHEN Subject_s_age BETWEEN 31 AND 45 THEN 'Aged-Youth'
+		ELSE 'Aged'
+	END AS Subject_Age_Group
+FROM Police_Arrests_20240702
+GROUP BY Subject_s_age,
+	CASE
+		WHEN Subject_s_age BETWEEN 0 AND 18 THEN 'Teens'
+		WHEN Subject_s_age BETWEEN 19 AND 30 THEN 'Youth'
+		WHEN Subject_s_age BETWEEN 31 AND 45 THEN 'Aged-Youth'
+		ELSE 'Aged'
+	END
+
+
+---HOW DISTANCE THE ARREST PLACE TO SCHOOL
+SELECT Adjacent_to_School,
+	CASE
+		WHEN Adjacent_to_School = 0 THEN 'Not Adjacent'
+		ELSE '500 Feet'
+	END AS 'Distance Arrest'
+FROM Police_Arrests_20240702
+GROUP BY Adjacent_to_School,
+	CASE
+		WHEN Adjacent_to_School = 0 THEN 'Not Adjacent'
+		ELSE '500 Feet'
+	END
+
+
+---ADDING ANOTHER COLUMN
+ALTER TABLE Police_Arrests_20240702
+ADD Subject_Age_Group NCHAR(20)
+
+ALTER TABLE Police_Arrests_20240702
+DROP COLUMN Subject_Age_Group
+
+
+ALTER TABLE Police_Arrests_20240702
+ADD Distance_Arrest NCHAR(20)
+
+
+
+UPDATE Police_Arrests_20240702
+SET Distance_Arrest = 'Not Adjacent'
+WHERE Adjacent_to_School = 0
+
+UPDATE Police_Arrests_20240702
+SET Distance_Arrest = '500 Feet'
+WHERE Adjacent_to_School = 1
+
+UPDATE Police_Arrests_20240702
+SET Subject_Age_Group = 'Teens'
+WHERE Subject_s_age BETWEEN 0 AND 18
+
+
+UPDATE Police_Arrests_20240702
+SET Subject_Age_Group = 'Youth'
+WHERE Subject_s_age BETWEEN 19 AND 30
+
+
+UPDATE Police_Arrests_20240702
+SET Subject_Age_Group = 'Aged-Youth'
+WHERE Subject_s_age BETWEEN 31 AND 45
+
+
+UPDATE Police_Arrests_20240702
+SET Subject_Age_Group = 'Aged'
+WHERE Subject_s_age >45
+
+
+
+---NUMBER OF ARREST BASED ON SUBJECT AGE GROUP THAT IS CLOSE AND NOT CLOSED TO SCHOOL
+SELECT Distance_Arrest,Subject_Age_Group,COUNT(Subject_Age_Group) 'Age Group Arrest Count'
+FROM Police_Arrests_20240702
+GROUP BY Distance_Arrest,Subject_Age_Group
+
+
+
+---NUMBER OF ARRESTS ON SUBJECT RACE
+SELECT Subject_s_race,Subject_Age_Group,COUNT(Subject_s_race) 'S_race Arrest Count'
+FROM Police_Arrests_20240702
+GROUP BY Subject_s_race,Subject_Age_Group
+
+
+---NUMBER OF ARREST OF ASSIGNED DIVISION ADJACENT TO SCHOOL
+SELECT Assigned_Division,Distance_Arrest,COUNT(Distance_Arrest) 'Division Arrest Count'
+FROM Police_Arrests_20240702
+GROUP BY Assigned_Division,Distance_Arrest
+ORDER BY [Division Arrest Count] DESC
+
+
+---TOTAL NUMBER OF DIVISION UNDER EACH BUREAU
+SELECT Assigned_Bureau,Assigned_Division,COUNT(Assigned_Division) 'NO. Of Division Under Buraeu'
+FROM Police_Arrests_20240702
+GROUP BY Assigned_Bureau,Assigned_Division
+ORDER BY [NO. Of Division Under Buraeu] DESC
+
+
+---NUMBER OF GENDER ARRESTED ADJACENT TO SCHOOL BASED ON THEIR AGE GROUP
+SELECT Subject_Age_Group,Subject_s_gender,Adjacent_to_School,COUNT(Subject_s_gender) 'S_Gender Count'
+FROM Police_Arrests_20240702
+GROUP BY Subject_Age_Group,Subject_s_gender,Adjacent_to_School
